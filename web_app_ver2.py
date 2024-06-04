@@ -95,7 +95,7 @@ if image_upload is not None:
             drawing_mode='freedraw',
             key="canvas",
         )
-
+         
         if canvas_result.image_data is not None:
             mask = cv2.cvtColor(np.array(canvas_result.image_data), cv2.COLOR_RGBA2GRAY)
             mask = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)[1]
