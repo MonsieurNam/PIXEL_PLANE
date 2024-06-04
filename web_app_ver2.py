@@ -38,7 +38,7 @@ def load_model_gen():
       return  pipe.to("cpu")
   
 pipe = load_model_gen()  
-st.title('Image detect+segment+inpaint')
+st.title('EDIT IMAGE')
 image_upload = st.file_uploader("Upload a photo")
 st.session_state.task = st.radio("Choose task:", ('object-removal', 'shape-guided','inpaint','image-outpainting'))
 st.session_state.mask_creation_method = st.radio("Choose the method to create a mask:", ('Use Prompt(best for remove)', 'Draw Mask'))
@@ -51,9 +51,9 @@ if 'image_mask_pil' not in st.session_state:
 
 if image_upload is not None:
     st.session_state.image_source, image = load_image(image_upload)
-    if st.session_state.mask_creation_method == 'Use Prompt':
+    if st.session_state.mask_creation_method == 'Use Prompt(best for remove)':
         st.subheader('Image orginal')
-        st.image(image_upload)
+        st.image(st.session_state.image_source)
         prompt_chosse_object = st.text_input(label="Describe the object you want to segment:", key="prompt_object")
         if prompt_chosse_object:
             annotated_frame, detected_boxes = detect(st.session_state.image_source, image,text_prompt=prompt_chosse_object, model=groundingdino_model)
