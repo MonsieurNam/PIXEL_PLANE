@@ -41,7 +41,7 @@ pipe = load_model_gen()
 st.title('Image detect+segment+inpaint')
 image_upload = st.file_uploader("Upload a photo")
 st.session_state.task = st.radio("Choose task:", ('object-removal', 'shape-guided','inpaint','image-outpainting'))
-mask_creation_method = st.radio("Choose the method to create a mask:", ('Use Prompt(best for remove)', 'Draw Mask'))
+st.session_state.mask_creation_method = st.radio("Choose the method to create a mask:", ('Use Prompt(best for remove)', 'Draw Mask'))
 
 if image_upload is None:
     st.stop()
@@ -51,9 +51,9 @@ if 'image_mask_pil' not in st.session_state:
 
 if image_upload is not None:
     st.session_state.image_source, image = load_image(image_upload)
-    st.subheader('Image orginal')
-    st.image(image_upload)
-    if mask_creation_method == 'Use Prompt':
+    if st.session_state.mask_creation_method == 'Use Prompt':
+        st.subheader('Image orginal')
+        st.image(image_upload)
         prompt_chosse_object = st.text_input(label="Describe the object you want to segment:", key="prompt_object")
         if prompt_chosse_object:
             annotated_frame, detected_boxes = detect(st.session_state.image_source, image,text_prompt=prompt_chosse_object, model=groundingdino_model)
@@ -72,28 +72,26 @@ if image_upload is not None:
                 #creat mask         
                 st.session_state.image_source_pil, st.session_state.image_mask_pil, inverted_image_mask_pil = create_mask(st.session_state.image_source, segmented_frame_masks)
 
-                # st.subheader('Result of mask')
-                # st.image(st.session_state.image_mask_pil)
+                st.subheader('Result of mask')
+                st.image(st.session_state.image_mask_pil)
 
 
-    elif mask_creation_method == 'Draw Mask':
-        
+    elif st.session_state.mask_creation_method == 'Draw Mask':
         if st.session_state.task == "image-outpainting":
-            st.subheader('draw on object you want to keep not change before out paint ')
+            st.subheader('Draw on object you want to keep not change before out paint ')
         elif st.session_state.task == "inpaint":
-            st.subheader('draw on object you want to change')
+            st.subheader('Draw on object you want to change')
         elif st.session_state.task == "shape-guided":
-            st.subheader('draw on object you want to shape-guided')
+            st.subheader('Draw on object you want to shape-guided')
         elif st.session_state.task == "inpaint":
-            st.subheader('draw on object you want to remove')
+            st.subheader('Draw on object you want to remove')
 
-        stroke_width = st.sidebar.slider("Stroke width: ", 1, 25, 5)
+        stroke_width = st.slider("Stroke width: ", 1, 25, 5)
         h, w = st.session_state.image_source.shape[:2]
         scale_factor = 800 / max(w, h) if max(w, h) > 800 else 1
         w_, h_ = int(w * scale_factor), int(h * scale_factor)
 
         # Create a canvas component.
-        st.subheader('Draw mask')
         canvas_result = st_canvas(
             fill_color='rgba(255, 255, 255, 0)',
             stroke_width=stroke_width,
