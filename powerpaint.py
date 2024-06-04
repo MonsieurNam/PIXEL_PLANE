@@ -4,6 +4,7 @@ from PIL import Image, ImageOps
 import numpy as np
 from diffusers.utils import load_image
 from io import BytesIO
+import cv2
 
 # Function to add tasks to prompt
 def add_task_to_prompt(prompt, negative_prompt, task):
@@ -77,19 +78,71 @@ def predict(
     return result
 
 # Load the model
-def gen_image(pipe, uploaded_image,uploaded_mask,prompt,guidance_scale,negative_prompt,task):
+def gen_image(pipe, uploaded_image, uploaded_mask, prompt, negative_prompt, task):
     pipe = pipe
     image = uploaded_image
     mask = uploaded_mask
     input_image = {"image": image, "mask": mask}
-    result_image = predict(
-        pipe,
-        input_image,
-        prompt,
-        1,  # fitting_degree
-        30,  # ddim_steps
-        guidance_scale,
-        negative_prompt,
-        task,
-    )
-    return result_image
+
+    tasks = [
+    {
+        "task": "object-removal",
+        "guidance_scale": 12,
+        "prompt": "",
+        "negative_prompt": "",
+    },
+    {
+        "task": "shape-guided",
+        "guidance_scale": 7.5,
+        "prompt": prompt,
+        "negative_prompt": negative_prompt,
+    },
+    {
+        "task": "inpaint",
+        "guidance_scale": 7.5,
+        "prompt": prompt,
+        "negative_prompt": negative_prompt,
+    },
+    {
+        "task": "image-outpainting",
+        "guidance_scale": 7.5,
+        "prompt": prompt,
+        "negative_prompt": negative_prompt,
+    },
+]
+    
+    if task == "image-outpainting":
+            margin = 128
+            input_image["image"] = ImageOps.expand(
+                input_image["image"],
+                border=(margin, margin, margin, margin),
+                fill=(127, 127, 127),
+            )
+            outpaint_mask = np.zeros_like(np.asarray(input_image["mask"]))
+            input_image["mask"] = Image.fromarray(
+                cv2.copyMakeBorder(
+                    outpaint_mask,
+                    margin,
+                    margin,
+                    margin,
+                    margin,
+                    cv2.BORDER_CONSTANT,
+                    value=(255, 255, 255),
+                )
+            )
+    for i in tasks:
+         if i["task"] == task:
+            guidance_scale = i["guidance_scale"]
+            prompt = i["prompt"]
+            negative_prompt = i["negative_prompt"]
+            result_image = predict(
+                pipe,
+                input_image,
+                prompt,
+                1,  # fitting_degree
+                30,  # ddim_steps
+                guidance_scale,
+                negative_prompt,
+                task,
+            )
+            return result_image

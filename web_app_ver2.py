@@ -38,9 +38,10 @@ def load_model_gen():
       return  pipe.to("cpu")
   
 pipe = load_model_gen()  
-st.title('Image detect+segment+inpaint')
+st.title('EDIT IMAGE')
 image_upload = st.file_uploader("Upload a photo")
-mask_creation_method = st.radio("Choose the method to create a mask:", ('Use Prompt', 'Draw Mask'))
+st.session_state.task = st.radio("Choose task:", ('object-removal', 'shape-guided','inpaint','image-outpainting'))
+st.session_state.mask_creation_method = st.radio("Choose the method to create a mask:", ('Use Prompt(best for remove)', 'Draw Mask'))
 
 if image_upload is None:
     st.stop()
@@ -50,11 +51,10 @@ if 'image_mask_pil' not in st.session_state:
 
 if image_upload is not None:
     st.session_state.image_source, image = load_image(image_upload)
-    st.subheader('Image orginal')
-    st.image(image_upload)
-
-    if mask_creation_method == 'Use Prompt':
-        prompt_chosse_object = st.text_input(label="Describe the object you want to change:", key="prompt_object")
+    if st.session_state.mask_creation_method == 'Use Prompt(best for remove)':
+        st.subheader('Image orginal')
+        st.image(st.session_state.image_source)
+        prompt_chosse_object = st.text_input(label="Describe the object you want to segment:", key="prompt_object")
         if prompt_chosse_object:
             annotated_frame, detected_boxes = detect(st.session_state.image_source, image,text_prompt=prompt_chosse_object, model=groundingdino_model)
 
@@ -76,14 +76,22 @@ if image_upload is not None:
                 st.image(st.session_state.image_mask_pil)
 
 
-    elif mask_creation_method == 'Draw Mask':
-        stroke_width = st.sidebar.slider("Stroke width: ", 1, 25, 5)
+    elif st.session_state.mask_creation_method == 'Draw Mask':
+        if st.session_state.task == "image-outpainting":
+            st.subheader('Draw on object you want to keep not change before out paint ')
+        elif st.session_state.task == "inpaint":
+            st.subheader('Draw on object you want to change')
+        elif st.session_state.task == "shape-guided":
+            st.subheader('Draw on object you want to shape-guided')
+        elif st.session_state.task == "inpaint":
+            st.subheader('Draw on object you want to remove')
+
+        stroke_width = st.slider("Stroke width: ", 1, 25, 5)
         h, w = st.session_state.image_source.shape[:2]
         scale_factor = 800 / max(w, h) if max(w, h) > 800 else 1
         w_, h_ = int(w * scale_factor), int(h * scale_factor)
 
         # Create a canvas component.
-        st.subheader('Draw mask')
         canvas_result = st_canvas(
             fill_color='rgba(255, 255, 255, 0)',
             stroke_width=stroke_width,
@@ -110,13 +118,19 @@ if image_upload is not None:
         # Inpainting form
     if st.session_state.image_mask_pil is not None:
             with st.form("Prompt"):
-                st.session_state.prompt = st.text_input(label="What would you like to see replaced?")
-                task = "inpainting"
-                st.session_state.guidance_scale = st.slider("Guidance Scale", min_value=1.0, max_value=20.0, value=7.5)
-                st.session_state.negative_prompt = "out of frame, lowres, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, disfigured, gross proportions, malformed limbs, watermark, signature"
+                if st.session_state.task == "inpaint":
+                    st.session_state.prompt = st.text_input(label="What would you like to see replaced?")
+                elif st.session_state.task == "object-removal":
+                    st.session_state.prompt = st.text_input(label="What object you want to remove?")
+                elif st.session_state.task == "shape-guided":
+                    st.session_state.prompt = st.text_input(label="What object you want to shape-guided?")
+                else:
+                    st.session_state.prompt = st.text_input(label="Describe the out painting you want:")
+
+                negative_prompt = "out of frame, lowres, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, disfigured, gross proportions, malformed limbs, watermark, signature"
                 submitted = st.form_submit_button("Generate")
                 if submitted:
-                    result_image = gen_image(pipe, st.session_state.image_source_pil,st.session_state.image_mask_pil, st.session_state.prompt,st.session_state.guidance_scale,st.session_state.negative_prompt,task)
+                    result_image = gen_image(pipe, st.session_state.image_source_pil,st.session_state.image_mask_pil, st.session_state.prompt, negative_prompt, st.session_state.task)
                     st.image(result_image, caption="Processed Image")
 
 
