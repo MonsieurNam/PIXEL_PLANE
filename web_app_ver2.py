@@ -111,12 +111,11 @@ if image_upload is not None:
     if st.session_state.image_mask_pil is not None:
             with st.form("Prompt"):
                 st.session_state.prompt = st.text_input(label="What would you like to see replaced?")
-                task = "inpainting"
-                st.session_state.guidance_scale = st.slider("Guidance Scale", min_value=1.0, max_value=20.0, value=7.5)
+                task = st.radio("Choose task:", ('object-removal', 'shape-guided','inpaint(replace)','image-outpainting'))
                 st.session_state.negative_prompt = "out of frame, lowres, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, disfigured, gross proportions, malformed limbs, watermark, signature"
                 submitted = st.form_submit_button("Generate")
                 if submitted:
-                    result_image = gen_image(pipe, st.session_state.image_source_pil,st.session_state.image_mask_pil, st.session_state.prompt,st.session_state.guidance_scale,st.session_state.negative_prompt,task)
+                    result_image = gen_image(pipe, st.session_state.image_source_pil,st.session_state.image_mask_pil, st.session_state.prompt,st.session_state.negative_prompt,task)
                     st.image(result_image, caption="Processed Image")
 
 
