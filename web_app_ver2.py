@@ -40,6 +40,7 @@ def load_model_gen():
 pipe = load_model_gen()  
 st.title('Image detect+segment+inpaint')
 image_upload = st.file_uploader("Upload a photo")
+st.session_state.task = st.radio("Choose task:", ('object-removal', 'shape-guided','inpaint(replace)','image-outpainting'))
 mask_creation_method = st.radio("Choose the method to create a mask:", ('Use Prompt', 'Draw Mask'))
 
 if image_upload is None:
@@ -111,11 +112,10 @@ if image_upload is not None:
     if st.session_state.image_mask_pil is not None:
             with st.form("Prompt"):
                 st.session_state.prompt = st.text_input(label="What would you like to see replaced?")
-                task = st.radio("Choose task:", ('object-removal', 'shape-guided','inpaint(replace)','image-outpainting'))
-                st.session_state.negative_prompt = "out of frame, lowres, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, disfigured, gross proportions, malformed limbs, watermark, signature"
+                negative_prompt = "out of frame, lowres, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, disfigured, gross proportions, malformed limbs, watermark, signature"
                 submitted = st.form_submit_button("Generate")
                 if submitted:
-                    result_image = gen_image(pipe, st.session_state.image_source_pil,st.session_state.image_mask_pil, st.session_state.prompt,st.session_state.negative_prompt,task)
+                    result_image = gen_image(pipe, st.session_state.image_source_pil,st.session_state.image_mask_pil, st.session_state.prompt, negative_prompt, st.session_state.task)
                     st.image(result_image, caption="Processed Image")
 
 
