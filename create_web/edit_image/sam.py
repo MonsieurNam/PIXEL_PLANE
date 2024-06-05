@@ -1,5 +1,5 @@
 # segment anything
-from edit_image.segment_anything import build_sam, SamPredictor
+from edit_image.segment_anything.segment_anything import build_sam, SamPredictor
 import numpy as np
 import matplotlib.pyplot as plt
 import torch

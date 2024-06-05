@@ -16,7 +16,14 @@ st.set_page_config(layout="wide")
 
 
 # Import custom modules
-
+import numpy as np
+import cv2
+from streamlit_drawable_canvas import st_canvas
+from PIL import Image
+from edit_image.detect_DINO import detect, groundingdino_model, load_image
+from edit_image.sam import segment, draw_mask, sam_predictor
+from edit_image.mask_create import create_mask
+from edit_image.powerpaint import gen_image
 from edit_image.pipeline_PowerPaint import StableDiffusionInpaintPipeline as Pipeline
 from edit_image.power_paint_tokenizer import PowerPaintTokenizer
 
@@ -141,16 +148,7 @@ def img2vid():
 
 #
 def edit_image():
-    import numpy as np
-    import cv2
-    from streamlit_drawable_canvas import st_canvas
-    from PIL import Image
-    from edit_image.detect_DINO import detect, groundingdino_model, load_image
-    from edit_image.sam import segment, draw_mask, sam_predictor
-    from edit_image.mask_create import create_mask
-    from edit_image.powerpaint import gen_image
 
-   
 
     image_upload = st.file_uploader("Upload a photo")
     task_options = ('object-removal', 'shape-guided', 'inpaint', 'image-outpainting')
