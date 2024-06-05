@@ -1,8 +1,8 @@
-import datasets.transforms as T
-from models import build_model
-from util.slconfig import SLConfig
-from util.utils import clean_state_dict
-from util.inference import annotate, predict
+import edit_image.datasets.transforms as T
+from edit_image.models import build_model
+from edit_image.util.slconfig import SLConfig
+from edit_image.util.utils import clean_state_dict
+from edit_image.util.inference import annotate, predict
 import supervision as sv
 import torch
 from huggingface_hub import hf_hub_download
