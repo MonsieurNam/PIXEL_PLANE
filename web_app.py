@@ -3,7 +3,7 @@ import os
 import io
 import numpy as np
 
-from GroundingDINO.groundingdino.util.inference import annotate, predict
+from util.inference import annotate, predict
 from PIL import Image, ImageOps
 import requests
 import streamlit as st

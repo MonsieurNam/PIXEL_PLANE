@@ -1,9 +1,8 @@
-import GroundingDINO.groundingdino.datasets.transforms as T
-from GroundingDINO.groundingdino.models import build_model
-from GroundingDINO.groundingdino.util import box_ops
-from GroundingDINO.groundingdino.util.slconfig import SLConfig
-from GroundingDINO.groundingdino.util.utils import clean_state_dict, get_phrases_from_posmap
-from GroundingDINO.groundingdino.util.inference import annotate, load_image, predict
+import datasets.transforms as T
+from models import build_model
+from util.slconfig import SLConfig
+from util.utils import clean_state_dict
+from util.inference import annotate, predict
 import supervision as sv
 import torch
 from huggingface_hub import hf_hub_download

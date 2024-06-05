@@ -1,12 +1,11 @@
 # segment anything
 from segment_anything import build_sam, SamPredictor
-import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import torch
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 from PIL import Image
-from GroundingDINO.groundingdino.util import box_ops
+from util import box_ops
 
 def segment(image, sam_model, boxes):
   sam_model.set_image(image)
