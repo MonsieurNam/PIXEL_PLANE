@@ -78,11 +78,19 @@ if image_upload is not None:
                 annotated_frame_with_mask = draw_mask(segmented_frame_masks[0][0], annotated_frame)
                 st.subheader('Result of Segment')
                 st.image(annotated_frame_with_mask)
-                st.session_state.image_source_pil, st.session_state.image_mask_pil, _ = create_mask(st.session_state.image_source, segmented_frame_masks)
-                st.subheader('Result of Mask')
-                st.image(st.session_state.image_mask_pil)
+                try:
+                    st.session_state.image_source_pil, st.session_state.image_mask_pil, _ = create_mask(st.session_state.image_source, segmented_frame_masks)
+                    if st.session_state.image_mask_pil is not None:
+                        st.subheader('Result of Mask')
+                        st.image(st.session_state.image_mask_pil)
+                    else:
+                        st.error("Mask creation failed.")
+                except Exception as e:
+                    st.error(f"Error in mask creation: {e}")
             else:
                 st.warning("No objects detected. Please try a different prompt or image.")
+        else:
+            st.experimental_rerun()
 
     elif current_mask_creation_method == 'Draw Mask':
         st.subheader('Draw on the image based on the selected task')
@@ -99,9 +107,15 @@ if image_upload is not None:
             mask = cv2.cvtColor(np.array(canvas_result.image_data), cv2.COLOR_RGBA2GRAY)
             mask = cv2.threshold(mask, 1, 255, cv2.THRESH_BINARY)[1]
             mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
-            st.session_state.image_source_pil, st.session_state.image_mask_pil, _ = create_mask(st.session_state.image_source, mask)
-            st.subheader('Result of Mask')
-            st.image(st.session_state.image_mask_pil, caption='Generated Mask')
+            try:
+                st.session_state.image_source_pil, st.session_state.image_mask_pil, _ = create_mask(st.session_state.image_source, mask)
+                if st.session_state.image_mask_pil is not None:
+                    st.subheader('Result of Mask')
+                    st.image(st.session_state.image_mask_pil, caption='Generated Mask')
+                else:
+                    st.error("Mask creation failed.")
+            except Exception as e:
+                st.error(f"Error in mask processing: {e}")
 
 if st.session_state.image_mask_pil is not None:
     with st.form("Prompt"):
