@@ -89,8 +89,7 @@ if image_upload is not None:
                     st.error(f"Error in mask creation: {e}")
             else:
                 st.warning("No objects detected. Please try a different prompt or image.")
-        else:
-            st.experimental_rerun()
+        
 
     elif current_mask_creation_method == 'Draw Mask':
         st.subheader('Draw on the image based on the selected task')
@@ -126,3 +125,7 @@ if st.session_state.image_mask_pil is not None:
         if submitted:
             result_image = gen_image(pipe, st.session_state.image_source_pil, st.session_state.image_mask_pil, st.session_state.prompt, negative_prompt, current_task)
             st.image(result_image, caption="Processed Image")
+            dowdload_image = st.form_submit_button("download")
+            
+            if dowdload_image:
+                st.experimental_rerun()
