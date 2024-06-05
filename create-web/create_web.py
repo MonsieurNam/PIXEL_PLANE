@@ -4,9 +4,8 @@ from PIL import Image
 import albumentations as A
 import cv2
 import numpy as np
-from final.web_app_ver2 import EditImage
+from edit_image.web_app_ver2 import EditImage
 
-###############
 # from change_background_model import model
 # from remove_object import *
 from img2vid import *
@@ -48,7 +47,7 @@ def side_bar():
         if st.button("IMAGE TO VIDEO"):
             st.session_state.page = "img2vid"
     with col4:
-        if st.button("INPAINT, OUTPAINT, SHAPE-GUIDED, REMOVE"):
+        if st.button("EDIT IMAGE"):
             st.session_state.page = "edit_image"
   
 
