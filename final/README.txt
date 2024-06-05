@@ -12,7 +12,7 @@
 !pip install streamlit torch Pillow diffusers streamlit_drawable_canvas
 !rm -r /content/Grounded-Segment-Anything
 !rm -r /content/PowerPaint-V1-stable-diffusion-inpainting
-%cd /content/final
+%cd /content/PIXEL_PILOT/final
 ! wget https://dl.fbaipublicfiles.com/segment_anything/sam_vit_h_4b8939.pth
 
 
