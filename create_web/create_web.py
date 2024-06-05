@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 import torch
 import time
-
+from io import BytesIO
 # from change_background_model import model
 # from remove_object import *
 # from img2vid import *
@@ -26,7 +26,7 @@ from edit_image.mask_create import create_mask
 from edit_image.powerpaint import gen_image
 from edit_image.pipeline_PowerPaint import StableDiffusionInpaintPipeline as Pipeline
 from edit_image.power_paint_tokenizer import PowerPaintTokenizer
-
+from download_link_creator import get_image_download_link
 #---------------Xử lý nền------------------#
 def robust_load_model(retry_limit=3, backoff_factor=2):
     attempts = 0
@@ -232,7 +232,7 @@ def edit_image():
                 dowdload_image = st.form_submit_button("download")
                 
                 if dowdload_image:
-                    st.experimental_rerun()
+                    get_image_download_link(result_image)
 
 
 
