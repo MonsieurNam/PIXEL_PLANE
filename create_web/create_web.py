@@ -154,8 +154,8 @@ def edit_image():
     task_options = ('object-removal', 'shape-guided', 'inpaint', 'image-outpainting')
     mask_creation_methods = ('Use Prompt (best for remove)', 'Draw Mask')
 
-    current_task = st.radio("Choose task:", task_options)
-    current_mask_creation_method = st.radio("Choose the method to create a mask:", mask_creation_methods)
+    current_task = st.sidebar.radio("Choose task:", task_options)
+    current_mask_creation_method = st.sidebar.radio("Choose the method to create a mask:", mask_creation_methods)
 
     # Reset mask and related states when the method is changed or new image is uploaded
     if 'prev_mask_method' not in st.session_state or st.session_state.prev_mask_method != current_mask_creation_method:
@@ -197,7 +197,7 @@ def edit_image():
 
         elif current_mask_creation_method == 'Draw Mask':
             st.subheader('Draw on the image based on the selected task')
-            stroke_width = st.slider("Stroke width: ", 1, 25, 5)
+            stroke_width = st.sidebar.slider("Stroke width: ", 1, 25, 5)
             h, w = st.session_state.image_source.shape[:2]
             scale_factor = 800 / max(w, h) if max(w, h) > 800 else 1
             w_, h_ = int(w * scale_factor), int(h * scale_factor)
@@ -229,10 +229,9 @@ def edit_image():
             if submitted:
                 result_image = gen_image(pipe, st.session_state.image_source_pil, st.session_state.image_mask_pil, st.session_state.prompt, negative_prompt, current_task)
                 st.image(result_image, caption="Processed Image")
-                dowdload_image = st.form_submit_button("download")
-                
-                if dowdload_image:
-                    get_image_download_link(result_image)
+                link = get_image_download_link(result_image)
+                st.subheader('CLick on link below to download image')
+                st.markdown(link, unsafe_allow_html=True)
 
 
 
