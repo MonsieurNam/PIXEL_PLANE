@@ -51,6 +51,12 @@ def robust_load_model(retry_limit=3, backoff_factor=2):
     st.error("Failed to load model after several attempts. Please check your connection and try again later.")
     return None
 
+def del_state():
+  for key in st.session_state.keys():
+    if key != 'page':
+      del st.session_state[key]
+
+
 def get_dimensions(image):
     if isinstance(image, np.ndarray):
         return image.shape[:2]  # trả về (height, width)
@@ -183,11 +189,11 @@ def edit_image():
                     st.image(annotated_frame_with_mask)
                     try:
                         st.session_state.image_source_pil, st.session_state.image_mask_pil, _ = create_mask(st.session_state.image_source, segmented_frame_masks)
-                        if st.session_state.image_mask_pil is not None:
-                            st.subheader('Result of Mask')
-                            st.image(st.session_state.image_mask_pil)
-                        else:
-                            st.error("Mask creation failed.")
+                    #     if st.session_state.image_mask_pil is not None:
+                    #         st.subheader('Result of Mask')
+                    #         st.image(st.session_state.image_mask_pil)
+                    #     else:
+                    #         st.error("Mask creation failed.")
                     except Exception as e:
                         st.error(f"Error in mask creation: {e}")
                 else:
@@ -196,7 +202,7 @@ def edit_image():
 
         elif current_mask_creation_method == 'Draw Mask':
             st.subheader('Draw on the image based on the selected task')
-            stroke_width = st.sidebar.slider("Stroke width: ", 1, 25, 5)
+            stroke_width = st.sidebar.slider("Stroke width: ", 10, 100, 5)
             h, w = st.session_state.image_source.shape[:2]
             scale_factor = 800 / max(w, h) if max(w, h) > 800 else 1
             w_, h_ = int(w * scale_factor), int(h * scale_factor)
@@ -211,18 +217,21 @@ def edit_image():
                 mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
                 try:
                     st.session_state.image_source_pil, st.session_state.image_mask_pil, _ = create_mask(st.session_state.image_source, mask)
-                    if st.session_state.image_mask_pil is not None:
-                        st.subheader('Result of Mask')
-                        st.image(st.session_state.image_mask_pil, caption='Generated Mask')
-                    else:
-                        st.error("Mask creation failed.")
+                    # if st.session_state.image_mask_pil is not None:
+                    #     st.subheader('Result of Mask')
+                    #     st.image(st.session_state.image_mask_pil, caption='Generated Mask')
+                    # else:
+                    #     st.error("Mask creation failed.")
                 except Exception as e:
                     st.error(f"Error in mask processing: {e}")
 
     if st.session_state.image_mask_pil is not None:
         with st.form("Prompt"):
-            prompt_label = "Describe the change you want:" if current_task != "image-outpainting" else "Describe the outpainting you want:"
-            st.session_state.prompt = st.text_input(label=prompt_label)
+            if current_task != 'Object-Removal':
+                prompt_label = "Describe the change you want:" if current_task != "image-outpainting" else "Describe the outpainting you want:"
+                st.session_state.prompt = st.text_input(label=prompt_label)
+            else:
+                st.session_state.prompt = ''
             negative_prompt = "out of frame, lowres, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, disfigured, gross proportions, malformed limbs, watermark, signature"
             submitted = st.form_submit_button("Generate")
             if submitted:
@@ -230,8 +239,8 @@ def edit_image():
 
                 result_image = gen_image(pipe, st.session_state.image_source_pil, st.session_state.image_mask_pil, st.session_state.prompt, negative_prompt, current_task)
                 resize_back = image_resize(result_image,h,w)
-                st.image(result_image, caption="Processed Image")
-                link = get_image_download_link(result_image)
+                st.image(resize_back, caption="Processed Image")
+                link = get_image_download_link(resize_back)
                 st.subheader('CLick on link below to download image')
                 st.markdown(link, unsafe_allow_html=True)
 
@@ -251,14 +260,33 @@ st.markdown(
     """,
     unsafe_allow_html=True,
 )
+st.image(back_ground, use_column_width=True)
 
+# st.markdown(
+#     """
+#     <style>
+#     .center {
+#         display: block;
+#         margin-left: auto;
+#         margin-right: auto;
+#     }
+#     </style>
+#     """,
+#     unsafe_allow_html=True,
+# )
 st.markdown(
     """
     <style>
-    .center {
+    .stButton button {
+        <style>
+        font-size: 60px;
+        padding: 30px 30px;
+        border: 8px solid #669999; /* Thêm viền */
+        background-color: #0e1118; /* Màu nền */
+        color: #b0dcdc; /* Màu chữ */
         display: block;
-        margin-left: auto;
-        margin-right: auto;
+        margin: 20px auto; /* Căn giữa nút */
+
     }
     </style>
     """,
@@ -286,6 +314,7 @@ if 'page' not in st.session_state:
 # Hàm để hiển thị nội dung của từng trang
 def show_page(page):
     if page == "main":
+        del_state()
         side_bar()
     elif page == "change_bg":
         side_bar()
