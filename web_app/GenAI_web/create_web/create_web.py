@@ -254,6 +254,8 @@ def edit_image():
             if current_task != 'Object-Removal':
                 prompt_label = "Describe the change you want:" if current_task != "image-outpainting" else "Describe the outpainting you want:"
                 st.session_state.prompt = st.text_input(label=prompt_label)
+            else:
+                st.session_state.prompt = ""
             negative_prompt = "out of frame, lowres, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, disfigured, gross proportions, malformed limbs, watermark, signature"
             _, center, __ = st.columns(3)
             with center:
