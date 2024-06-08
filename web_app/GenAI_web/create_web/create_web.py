@@ -58,6 +58,15 @@ def del_state():
     if key != 'page':
       del st.session_state[key]
 
+def get_dimensions(image):
+    if isinstance(image, np.ndarray):
+        return image.shape[:2]  # trả về (height, width)
+    elif isinstance(image, Image.Image):
+        return image.size[1], image.size[0]  # trả về (height, width)
+    else:
+        raise TypeError("Unsupported image type")
+
+
 def image_resize(img, h, w):
   # img = cv2.imread(link)
   img = np.array(img)
@@ -67,10 +76,10 @@ def image_resize(img, h, w):
   img_org = Image.fromarray(img)
   return img_org
 
+
 def read_image(upload_file):
   orgi_img = Image.open(upload_file)
-  height = orgi_img.height
-  width = orgi_img.width
+  height, width = get_dimensions(orgi_img)
   return height, width
 
 
@@ -164,7 +173,7 @@ def img2vid():
 #
 def edit_image():
     image_upload = st.file_uploader("Upload a photo")
-    task_options = ('Object-Removal', 'Shape-Guided', 'Inpaint', 'Image-Outpainting')
+    task_options = ('Object-Removal', 'Inpaint', 'Image-Outpainting')
     mask_creation_methods = ('Use Prompt', 'Draw Mask')
 
     current_task = st.sidebar.radio("Choose task:", task_options)
@@ -242,8 +251,9 @@ def edit_image():
 
     if st.session_state.image_mask_pil is not None:
         with st.form("Prompt"):
-            prompt_label = "Describe the change you want:" if current_task != "image-outpainting" else "Describe the outpainting you want:"
-            st.session_state.prompt = st.text_input(label=prompt_label)
+            if current_task != 'Object-Removal':
+                prompt_label = "Describe the change you want:" if current_task != "image-outpainting" else "Describe the outpainting you want:"
+                st.session_state.prompt = st.text_input(label=prompt_label)
             negative_prompt = "out of frame, lowres, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, disfigured, gross proportions, malformed limbs, watermark, signature"
             _, center, __ = st.columns(3)
             with center:
