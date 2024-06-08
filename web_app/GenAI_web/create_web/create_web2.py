@@ -1,4 +1,4 @@
-import  base64
+# import time
 import streamlit as st
 from PIL import Image
 import albumentations as A
@@ -7,7 +7,6 @@ import numpy as np
 import torch
 import time
 from io import BytesIO
-
 # from change_background_model import model
 # from remove_object import *
 # from img2vid import *
@@ -52,12 +51,6 @@ def robust_load_model(retry_limit=3, backoff_factor=2):
     st.error("Failed to load model after several attempts. Please check your connection and try again later.")
     return None
 
-# Xóa từng mục trong session_state
-def del_state():
-  for key in st.session_state.keys():
-    if key != 'page':
-      del st.session_state[key]
-
 def get_dimensions(image):
     if isinstance(image, np.ndarray):
         return image.shape[:2]  # trả về (height, width)
@@ -67,29 +60,19 @@ def get_dimensions(image):
         raise TypeError("Unsupported image type")
 
 
-
-def image_resize(image, height, width, resample=Image.LANCZOS):
-    """
-    Resize an image to the given height and width using the specified resampling filter.
-    
-    Args:
-    image (PIL.Image): The original image to be resized.
-    height (int): The new height of the resized image.
-    width (int): The new width of the resized image.
-    resample (int): The resampling filter to use.
-
-    Returns:
-    PIL.Image: The resized image.
-    """
-    return image.resize((width, height), resample=resample)
-
+def image_resize(img, h, w):
+  # img = cv2.imread(link)
+  img = np.array(img)
+  transform = A.Resize(h, w, interpolation=cv2.INTER_NEAREST)
+  aug = transform(image=img)
+  img = aug['image']
+  img_org = Image.fromarray(img)
+  return img_org
 
 def read_image(upload_file):
   orgi_img = Image.open(upload_file)
   height, width = get_dimensions(orgi_img)
   return height, width
-
-
 
 back_ground= Image.open('images/hackathon_final.png')
 back_ground = image_resize(back_ground, int(back_ground.height), int(back_ground.width))
@@ -97,8 +80,6 @@ back_ground = image_resize(back_ground, int(back_ground.height), int(back_ground
 logo = Image.open('images/logo4.png')
 logo = image_resize(logo, int(logo.height*0.5), int(logo.width*0.5))
 
-# logo_donvi_tc = Image.open('images/logo_dvtc.png')
-# logo_donvi_tc = image_resize(logo_donvi_tc, int(logo_donvi_tc.height*0.9), int(logo_donvi_tc.width*0.9))
 
 
 #-------------------Frames---------------------#
@@ -115,23 +96,9 @@ def side_bar():
     if st.sidebar.button("‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ EDIT IMAGE ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ "):
         st.session_state.page = "edit_image"
 
-    # with col1:
-    #     col11, col12 = st.columns(2)
-    #     with col12:
-    #       if st.button("MAIN MENU"):
-    #           st.session_state.page = "main"
-    # with col2:
-    #     if st.button("CHANGE BACKGROUND"):
-    #         st.session_state.page = "change_bg"
-    # with col3:
-    #     if st.button("IMAGE TO VIDEO"):
-    #         st.session_state.page = "img2vid"
-    # with col4:
-    #     if st.button("EDIT IMAGE"):
-    #         st.session_state.page = "edit_image"
 
 def change_background():
-
+    st.text(" ")
     st.subheader('Image')
     upload_image = st.file_uploader('Upload the image you want to generate here: ')
     if upload_image is not None:
@@ -159,6 +126,7 @@ def change_background():
               st.subheader('Click on link below to download image')
               st.markdown(link, unsafe_allow_html=True)
 
+
 def img2vid():
     # st.subheader('Image')
     # upload_image = st.file_uploader('Upload the image you want to generate here: ')
@@ -179,8 +147,10 @@ def img2vid():
 
 #
 def edit_image():
+
+
     image_upload = st.file_uploader("Upload a photo")
-    task_options = ('Object-Removal', 'Inpaint', 'Image-Outpainting')
+    task_options = ('object-removal', 'inpaint', 'image-outpainting')
     mask_creation_methods = ('Use Prompt', 'Draw Mask')
 
     current_task = st.sidebar.radio("Choose task:", task_options)
@@ -199,41 +169,34 @@ def edit_image():
         st.stop()
 
     if image_upload is not None:
-        st.session_state.h, st.session_state.w = read_image(image_upload)
         st.session_state.image_source, image = load_image(image_upload)
         if current_mask_creation_method == 'Use Prompt':
-
-            _, center, __ = st.columns(3)
-            with center:
-              st.subheader('Image Original')
-              st.image(st.session_state.image_source)
+            st.subheader('Image Original')
+            st.image(st.session_state.image_source)
             prompt_choose_object = st.text_input("Describe the object you want to segment:", key="prompt_object")
             if prompt_choose_object:
                 annotated_frame, detected_boxes = detect(st.session_state.image_source, image, text_prompt=prompt_choose_object, model=groundingdino_model)
                 if detected_boxes.nelement() != 0:
                     segmented_frame_masks = segment(st.session_state.image_source, sam_predictor, boxes=detected_boxes)
                     annotated_frame_with_mask = draw_mask(segmented_frame_masks[0][0], annotated_frame)
-
-                    _, center, __ = st.columns(3)
-                    with center:
-                      st.subheader('Result of Segment')
-                      st.image(annotated_frame_with_mask)
+                    st.subheader('Result of Segment')
+                    st.image(annotated_frame_with_mask)
                     try:
                         st.session_state.image_source_pil, st.session_state.image_mask_pil, _ = create_mask(st.session_state.image_source, segmented_frame_masks)
-                        # if st.session_state.image_mask_pil is not None:
-                        #     st.subheader('Result of Mask')
-                        #     st.image(st.session_state.image_mask_pil)
-                        # else:
-                        #     st.error("Mask creation failed.")
+                        if st.session_state.image_mask_pil is not None:
+                            st.subheader('Result of Mask')
+                            st.image(st.session_state.image_mask_pil)
+                        else:
+                            st.error("Mask creation failed.")
                     except Exception as e:
                         st.error(f"Error in mask creation: {e}")
                 else:
                     st.warning("No objects detected. Please try a different prompt or image.")
-
+            
 
         elif current_mask_creation_method == 'Draw Mask':
             st.subheader('Draw on the image based on the selected task')
-            stroke_width = st.sidebar.slider("Stroke width: ", 5, 100, 10)
+            stroke_width = st.sidebar.slider("Stroke width: ", 1, 25, 5)
             h, w = st.session_state.image_source.shape[:2]
             scale_factor = 800 / max(w, h) if max(w, h) > 800 else 1
             w_, h_ = int(w * scale_factor), int(h * scale_factor)
@@ -248,37 +211,47 @@ def edit_image():
                 mask = cv2.resize(mask, (w, h), interpolation=cv2.INTER_NEAREST)
                 try:
                     st.session_state.image_source_pil, st.session_state.image_mask_pil, _ = create_mask(st.session_state.image_source, mask)
-                    # if st.session_state.image_mask_pil is not None:
-                    #     st.subheader('Result of Mask')
-                    #     st.image(st.session_state.image_mask_pil, caption='Generated Mask')
-                    # else:
-                    #     st.error("Mask creation failed.")
+                    if st.session_state.image_mask_pil is not None:
+                        st.subheader('Result of Mask')
+                        st.image(st.session_state.image_mask_pil, caption='Generated Mask')
+                    else:
+                        st.error("Mask creation failed.")
                 except Exception as e:
                     st.error(f"Error in mask processing: {e}")
 
     if st.session_state.image_mask_pil is not None:
         with st.form("Prompt"):
-            if current_task != 'Object-Removal':
-                prompt_label = "Describe the change you want:" if current_task != "image-outpainting" else "Describe the outpainting you want:"
-                st.session_state.prompt = st.text_input(label=prompt_label)
-            else:
-                st.session_state.prompt = ""
+            prompt_label = "Describe the change you want:" if current_task != "image-outpainting" else "Describe the outpainting you want:"
+            st.session_state.prompt = st.text_input(label=prompt_label)
             negative_prompt = "out of frame, lowres, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, disfigured, gross proportions, malformed limbs, watermark, signature"
-            _, center, __ = st.columns(3)
-            with center:
-                submitted = st.form_submit_button("Generate")
+            submitted = st.form_submit_button("Generate")
             if submitted:
+                h, w = st.session_state.image_source.shape[:2]
+
                 result_image = gen_image(pipe, st.session_state.image_source_pil, st.session_state.image_mask_pil, st.session_state.prompt, negative_prompt, current_task)
-                st.session_state.result_image = image_resize(result_image, st.session_state.h, st.session_state.w)
-                st.image(st.session_state.result_image, caption="Processed Image")
-                link = get_image_download_link(st.session_state.result_image)
-                st.subheader('Click on link below to download image')
+                resize_back = image_resize(result_image,h,w)
+                st.image(result_image, caption="Processed Image")
+                link = get_image_download_link(result_image)
+                st.subheader('CLick on link below to download image')
                 st.markdown(link, unsafe_allow_html=True)
 
 
 
 
 #-----------main page code-------------#
+
+st.markdown(
+    """
+    <style>
+    .stButton button {
+        font-size: 50px;
+        padding: 20px 30px;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 st.markdown(
     """
     <style>
@@ -292,37 +265,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Sử dụng st.image() để hiển thị hình ảnh
-st.image(back_ground, use_column_width=True)
-
-# # Nếu bạn muốn chèn HTML và CSS
-# st.markdown(
-#     f"""
-#     <div class="center">
-#         <img src="data:image/jpeg;base64,{base64.b64encode(open('images/background.jpg', "rb").read()).decode()}" class="center">
-#     </div>
-#     """,
-#     unsafe_allow_html=True,
-# )
-st.markdown(
-    """
-    <style>
-    .stButton button {
-        <style>
-        font-size: 60px;
-        padding: 30px 30px;
-        border: 8px solid #669999; /* Thêm viền */
-        background-color: #0e1118; /* Màu nền */
-        color: #b0dcdc; /* Màu chữ */
-        display: block;
-        margin: 20px auto; /* Căn giữa nút */
-
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
+# lg1, lg2, lg3 = st.columns(3)
+# with lg1:
+#     st.image(logo_fpt)
+# with lg2:
+#     st.image(logo_hackathon)
+# with lg3:
+#     st.image(logo_donvi_tc)
 @st.cache_resource
 def load_model_gen():
     return robust_load_model()
@@ -337,22 +286,19 @@ if 'page' not in st.session_state:
 # Hàm để hiển thị nội dung của từng trang
 def show_page(page):
     if page == "main":
-        del_state()
         side_bar()
     elif page == "change_bg":
         side_bar()
-        # del_state()
         change_background()
     elif page == "img2vid":
         side_bar()
-        # del_state()
         st.header("Image to Video")
         # img2vid()
     elif page == "edit_image":
         side_bar()
-        # del_state()
         edit_image()
 
 
 # Hiển thị trang hiện tại
 show_page(st.session_state.page)
+

@@ -51,6 +51,13 @@ def robust_load_model(retry_limit=3, backoff_factor=2):
     st.error("Failed to load model after several attempts. Please check your connection and try again later.")
     return None
 
+def get_dimensions(image):
+    if isinstance(image, np.ndarray):
+        return image.shape[:2]  # trả về (height, width)
+    elif isinstance(image, Image.Image):
+        return image.size[1], image.size[0]  # trả về (height, width)
+    else:
+        raise TypeError("Unsupported image type")
 
 
 def image_resize(img, h, w):
@@ -62,70 +69,62 @@ def image_resize(img, h, w):
   img_org = Image.fromarray(img)
   return img_org
 
-logo_fpt = Image.open('images/logo_fpt.png')
-logo_fpt = image_resize(logo_fpt, int(logo_fpt.height*0.27), int(logo_fpt.width*0.27))
+def read_image(upload_file):
+  orgi_img = Image.open(upload_file)
+  height, width = get_dimensions(orgi_img)
+  return height, width
 
-logo_hackathon = Image.open('images/logo_hackathon.png')
-logo_hackathon = image_resize(logo_hackathon, int(logo_hackathon.height*1.4), int(logo_hackathon.width*1.4))
+back_ground= Image.open('images/hackathon_final.png')
+back_ground = image_resize(back_ground, int(back_ground.height), int(back_ground.width))
 
-logo_donvi_tc = Image.open('images/logo_dvtc.png')
-logo_donvi_tc = image_resize(logo_donvi_tc, int(logo_donvi_tc.height*0.9), int(logo_donvi_tc.width*0.9))
+logo = Image.open('images/logo4.png')
+logo = image_resize(logo, int(logo.height*0.5), int(logo.width*0.5))
+
 
 
 #-------------------Frames---------------------#
 
 def side_bar():
 # Tạo các nút nằm ngang cho taskbar
-    col1, col2, col3, col4, col5 = st.columns(5)
+    st.sidebar.image(logo)
+    if st.sidebar.button("‎  ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ MAIN MENU ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ "):
+        st.session_state.page = "main"
+    if st.sidebar.button("CHANGE BACKGROUND"):
+        st.session_state.page = "change_bg"
+    if st.sidebar.button("‎ ‎ ‎ ‎ ‎ ‎ ‎ IMAGE TO VIDEO ‎ ‎ ‎ ‎ ‎ ‎ ‎ "):
+        st.session_state.page = "img2vid"
+    if st.sidebar.button("‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ EDIT IMAGE ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ ‎ "):
+        st.session_state.page = "edit_image"
 
-    with col1:
-        if st.button("MAIN MENU"):
-            st.session_state.page = "main"
-    with col2:
-        if st.button("CHANGE BACKGROUND"):
-            st.session_state.page = "change_bg"
-    with col3:
-        if st.button("IMAGE TO VIDEO"):
-            st.session_state.page = "img2vid"
-    with col4:
-        if st.button("EDIT IMAGE"):
-            st.session_state.page = "edit_image"
-  
 
 def change_background():
     st.text(" ")
-    st.markdown("<h1 style='text-align: center; color: white;'>Change Image's Background</h1>", unsafe_allow_html=True)
-
     st.subheader('Image')
     upload_image = st.file_uploader('Upload the image you want to generate here: ')
-
     if upload_image is not None:
         # Lưu trữ file ảnh vào session_state
         st.session_state.upload_image = upload_image
-    _, center, __ = st.columns(3)
     if 'upload_image' in st.session_state:
+        _, center, __ = st.columns(3)
         with center:
             st.image(st.session_state.upload_image, caption='Original Image')
 
+        st.subheader('Prompt')
+        st.session_state.prompt = st.text_input('Enter your prompt here: ')
+        # st.session_state.num_img = st.number_input('Number of images you want to create: ', 1, 4)
+        _, center, __ = st.columns(3)
+        with center:
+          if st.button('Generate'):
+              # columns = st.columns(st.session_state.num_img)
+              with st.spinner('Generating...'):
+                  st.session_state.upload_image = Image.open(st.session_state.upload_image)
+                  output_image = model(image=st.session_state.upload_image, prompt=st.session_state.prompt)
 
-    st.subheader('Prompt')
-    st.session_state.prompt = st.text_input('Enter your prompt here: ')
-    st.session_state.num_img = st.number_input('Number of images you want to create: ', 1, 4)
-
-    if st.button('Generate'):
-        # columns = st.columns(st.session_state.num_img)
-        # with st.spinner('Generating...'):
-            st.session_state.upload_image = Image.open(st.session_state.upload_image)
-        #     output_images = model(image=st.session_state.upload_image, prompt=st.session_state.prompt, num=st.session_state.num_img)
-        #
-        #     for i, img in enumerate(output_images):
-        #         with columns[i]:
-        #             st.image(img, use_column_width=True)
-        # st.success('Done!')
-            _, center, __ = st.columns(3)
-            with center:
-                st.image(st.session_state.upload_image)
-                st.write('aaaaaaaaaaaaaaaaaaaaaaaaa')
+                  st.image(output_image)
+              st.success('Done!')
+              link = get_image_download_link(st.session_state.result_image)
+              st.subheader('Click on link below to download image')
+              st.markdown(link, unsafe_allow_html=True)
 
 
 def img2vid():
@@ -151,8 +150,8 @@ def edit_image():
 
 
     image_upload = st.file_uploader("Upload a photo")
-    task_options = ('object-removal', 'shape-guided', 'inpaint', 'image-outpainting')
-    mask_creation_methods = ('Use Prompt (best for remove)', 'Draw Mask')
+    task_options = ('object-removal', 'inpaint', 'image-outpainting')
+    mask_creation_methods = ('Use Prompt', 'Draw Mask')
 
     current_task = st.sidebar.radio("Choose task:", task_options)
     current_mask_creation_method = st.sidebar.radio("Choose the method to create a mask:", mask_creation_methods)
@@ -171,7 +170,7 @@ def edit_image():
 
     if image_upload is not None:
         st.session_state.image_source, image = load_image(image_upload)
-        if current_mask_creation_method == 'Use Prompt (best for remove)':
+        if current_mask_creation_method == 'Use Prompt':
             st.subheader('Image Original')
             st.image(st.session_state.image_source)
             prompt_choose_object = st.text_input("Describe the object you want to segment:", key="prompt_object")
@@ -227,7 +226,10 @@ def edit_image():
             negative_prompt = "out of frame, lowres, error, cropped, worst quality, low quality, jpeg artifacts, ugly, duplicate, morbid, mutilated, out of frame, mutation, deformed, blurry, dehydrated, bad anatomy, bad proportions, extra limbs, disfigured, gross proportions, malformed limbs, watermark, signature"
             submitted = st.form_submit_button("Generate")
             if submitted:
+                h, w = st.session_state.image_source.shape[:2]
+
                 result_image = gen_image(pipe, st.session_state.image_source_pil, st.session_state.image_mask_pil, st.session_state.prompt, negative_prompt, current_task)
+                resize_back = image_resize(result_image,h,w)
                 st.image(result_image, caption="Processed Image")
                 link = get_image_download_link(result_image)
                 st.subheader('CLick on link below to download image')
@@ -263,13 +265,13 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-lg1, lg2, lg3 = st.columns(3)
-with lg1:
-    st.image(logo_fpt)
-with lg2:
-    st.image(logo_hackathon)
-with lg3:
-    st.image(logo_donvi_tc)
+# lg1, lg2, lg3 = st.columns(3)
+# with lg1:
+#     st.image(logo_fpt)
+# with lg2:
+#     st.image(logo_hackathon)
+# with lg3:
+#     st.image(logo_donvi_tc)
 @st.cache_resource
 def load_model_gen():
     return robust_load_model()
