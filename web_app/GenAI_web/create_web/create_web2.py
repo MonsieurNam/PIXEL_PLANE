@@ -227,7 +227,7 @@ def edit_image():
 
     if st.session_state.image_mask_pil is not None:
         with st.form("Prompt"):
-            if current_task != 'Object-Removal':
+            if current_task != 'object-removal':
                 prompt_label = "Describe the change you want:" if current_task != "image-outpainting" else "Describe the outpainting you want:"
                 st.session_state.prompt = st.text_input(label=prompt_label)
             else:
