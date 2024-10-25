@@ -2,7 +2,12 @@
 
 <h1 align="center">=========================</h1>
 
-[![Preview Video](https://img.youtube.com/vi/l8Z1_2GLdc4/0.jpg)](https://www.youtube.com/watch?v=l8Z1_2GLdc4 "Click to Watch!")
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=l8Z1_2GLdc4" target="_blank">
+    <img src="https://img.youtube.com/vi/l8Z1_2GLdc4/0.jpg" alt="Preview Video" width="50%" style="max-width:600px;">
+  </a>
+</p>
+
 
 <h2>Summary</h2>
 
