@@ -1,14 +1,14 @@
-Hackathon Generative AI contest
+<h1>Hackathon Generative AI contest</h1>
 
 <h1 align="center">=========================</h1>
 
-Summary
+<h2>Summary</h2>
 
 Pixel Plane is a generative AI web app that enhances data for training autonomous cars by providing background changes, image-to-video conversion, and object manipulation.
 
 <h1 align="center">=========================</h1>
 
-Highlights
+<h2>Highlights</h2>
 🚗 Autonomous cars are trending in the automotive industry.
 🌧️ Background changing allows users to modify weather and time of day.
 🎥 Image-to-video conversion creates dynamic sequences from static images.
@@ -19,7 +19,7 @@ Highlights
 
 <h1 align="center">=========================</h1>
 
-Key Insights
+<h2>Key Insights</h2>
 
 🚘 Trend in Automotive Industry: Autonomous cars are reshaping the car industry, necessitating advanced data generation methods to enhance training. This trend highlights the importance of innovative solutions like Pixel Plane.
 
