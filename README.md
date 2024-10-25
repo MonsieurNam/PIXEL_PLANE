@@ -1,10 +1,11 @@
 <h1>Hackathon Generative AI contest</h1>
 
 <h1 align="center">=========================</h1>
+<h2>Preview Video:</h2>
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=l8Z1_2GLdc4" target="_blank">
-    <img src="https://img.youtube.com/vi/l8Z1_2GLdc4/0.jpg" alt="Preview Video" width="50%" style="max-width:600px;">
+    <img src="https://img.youtube.com/vi/l8Z1_2GLdc4/0.jpg" alt="Preview Video" width="100%" style="max-width:600px;">
   </a>
 </p>
 
