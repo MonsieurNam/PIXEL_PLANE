@@ -2,7 +2,7 @@
 
 <h1 align="center">=========================</h1>
 
-[![Preview Video](https://img.youtube.com/vi/l8Z1_2GLdc4/0.jpg)](https://www.youtube.com/watch?v=l8Z1_2GLdc4 "Click to Watch!")
+[![Preview Video] align="center" (https://img.youtube.com/vi/l8Z1_2GLdc4/0.jpg)](https://www.youtube.com/watch?v=l8Z1_2GLdc4 "Click to Watch!")
 
 <h2>Summary</h2>
 
