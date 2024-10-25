@@ -5,7 +5,7 @@
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=l8Z1_2GLdc4" target="_blank">
-    <img src="https://img.youtube.com/vi/l8Z1_2GLdc4/0.jpg" alt="Preview Video" width="80%" style="max-width:600px;">
+    <img src="https://img.youtube.com/vi/l8Z1_2GLdc4/0.jpg" alt="Preview Video" width="85%" style="max-width:600px;">
   </a>
 </p>
 
@@ -42,3 +42,10 @@ Pixel Plane is a generative AI web app that enhances data for training autonomou
 🛡️ Robust Training Simulations: By simulating numerous scenarios through data augmentation, Pixel Plane helps ensure that autonomous systems are thoroughly trained for unpredictable real-world conditions.
 
 📊 Exponential Data Generation: The ability to create 10,000 unique images from just 100 initial images demonstrates the power of generative AI in exponentially increasing the volume of training data available for machine learning applications.
+
+<h1 align="center">=========================</h1>
+
+<h2>How to run:</h2>
+
+This code using streamlit to run.
+All you need is upload the notebook file to google colab and run everything in the notebook file. 
