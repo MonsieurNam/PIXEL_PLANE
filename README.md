@@ -18,11 +18,23 @@ Pixel Plane is a generative AI web app that enhances data for training autonomou
 
 <h2>Highlights</h2>
 🚗 Autonomous cars are trending in the automotive industry.
+
+
 🌧️ Background changing allows users to modify weather and time of day.
+
+
 🎥 Image-to-video conversion creates dynamic sequences from static images.
+
+
 🔄 Object replacement and removal enable customization of images.
+
+
 🌈 Enhanced data diversity improves model accuracy for training.
+
+
 ⚙️ Simulating various scenarios enhances robust training for autonomous systems.
+
+
 📈 Create 10,000 unique images from an initial set of 100.
 
 <h1 align="center">=========================</h1>
